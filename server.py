@@ -1129,6 +1129,29 @@ async def pulse(include_archive: bool = False) -> str:
     return status + "\n=== 记忆列表 ===\n" + "\n".join(lines)
 
 
+
+# =============================================================
+# Tool 7: clock — Get current time and bridge data
+# =============================================================
+@mcp.tool()
+async def clock(query: str = "time") -> str:
+    """查询时间或崤崤的设备状态。query可选: time/heartrate/device"""
+    import httpx as _httpx
+    base = "https://claude-bridge.zeabur.app"
+    endpoints = {
+        "time": f"{base}/time",
+        "heartrate": f"{base}/heartrate",
+        "device": f"{base}/device",
+    }
+    url = endpoints.get(query, endpoints["time"])
+    try:
+        async with _httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(url)
+            return resp.text
+    except Exception as e:
+        return f"查询失败: {e}"
+
+
 # =============================================================
 # Tool 6: dream — Dreaming, digest recent memories
 # 工具 6：dream — 做梦，消化最近的记忆
