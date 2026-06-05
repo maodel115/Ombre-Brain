@@ -1150,8 +1150,8 @@ async def search(query: str, type: str = "general", num: int = 5) -> str:
     except Exception as e:
         return f"搜索失败: {e}"
 
-
-Tool 7: clock — Get current time and bridge data
+# Tool 7: clock — Get current time and bridge data
+# =============================================================
 # =============================================================
 @mcp.tool()
 async def clock(query: str = "time") -> str:
