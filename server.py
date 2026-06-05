@@ -1131,7 +1131,27 @@ async def pulse(include_archive: bool = False) -> str:
 
 
 # =============================================================
-# Tool 7: clock — Get current time and bridge data
+# 
+# =============================================================
+# Tool 8: search — Web search via bridge
+# =============================================================
+@mcp.tool()
+async def search(query: str, type: str = "general", num: int = 5) -> str:
+    """搜索网页或图片。query=关键词, type=general/image, num=返回数量(1-10)"""
+    import httpx as _httpx
+    base = "https://claude-bridge.zeabur.app"
+    params = {"q": query, "num": min(num, 10)}
+    if type == "image":
+        params["type"] = "image"
+    try:
+        async with _httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(f"{base}/search", params=params)
+            return resp.text
+    except Exception as e:
+        return f"搜索失败: {e}"
+
+
+Tool 7: clock — Get current time and bridge data
 # =============================================================
 @mcp.tool()
 async def clock(query: str = "time") -> str:
