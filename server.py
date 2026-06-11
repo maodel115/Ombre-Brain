@@ -1133,14 +1133,15 @@ async def pulse(include_archive: bool = False) -> str:
 # =============================================================
 # 
 # =============================================================
+# =============================================================
 # Tool 8: search — Web search via bridge
 # =============================================================
 @mcp.tool()
-async def search(query: str, type: str = "general", num: int = 5) -> str:
-    """搜索网页或图片。query=关键词, type=general/image, num=返回数量(1-10)"""
+async def search(query: str, type: str = "general", num: int = 5, engine: str = "all") -> str:
+    """搜索网页或图片。query=关键词, type=general/image, num=返回数量(1-10), engine=duckduckgo/bing/google/all"""
     import httpx as _httpx
     base = "https://claude-bridge.zeabur.app"
-    params = {"q": query, "num": min(num, 10)}
+    params = {"q": query, "num": min(num, 10), "engine": engine}
     if type == "image":
         params["type"] = "image"
     try:
