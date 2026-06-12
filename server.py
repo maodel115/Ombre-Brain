@@ -1160,6 +1160,7 @@ async def clock(query: str = "time") -> str:
     import httpx as _httpx
     base = "https://claude-bridge.zeabur.app"
     endpoints = {
+        "health": f"{base}/health",
         "time": f"{base}/time",
         "heartrate": f"{base}/heartrate",
         "device": f"{base}/device",
