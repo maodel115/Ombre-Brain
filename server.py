@@ -1155,8 +1155,8 @@ async def search(query: str, type: str = "general", num: int = 5, engine: str = 
 # =============================================================
 # =============================================================
 @mcp.tool()
-async def clock(query: str = "time") -> str:
-    """查询时间或崤崤的设备状态。query可选: time/heartrate/device"""
+async def clock(query: str = "time", time_from: str = "", time_to: str = "", hours: str = "") -> str:
+    """查询时间或崤崤的设备状态。query可选: time/heartrate/device/health。device支持时间范围：time_from="15:30" time_to="16:05" 或 hours="6"查最近6小时"""
     import httpx as _httpx
     base = "https://claude-bridge.zeabur.app"
     endpoints = {
@@ -1166,6 +1166,17 @@ async def clock(query: str = "time") -> str:
         "device": f"{base}/device",
     }
     url = endpoints.get(query, endpoints["time"])
+    # 给device加时间范围参数
+    if query == "device":
+        params = []
+        if time_from:
+            params.append(f"from={time_from}")
+        if time_to:
+            params.append(f"to={time_to}")
+        if hours:
+            params.append(f"hours={hours}")
+        if params:
+            url += "?" + "&".join(params)
     try:
         async with _httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.get(url)
