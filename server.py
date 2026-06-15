@@ -1235,6 +1235,52 @@ async def music_playlist(uid: str = "1911540028") -> str:
         return f"获取歌单失败: {e}"
 
 
+
+# =============================================================
+# Tool 10: music_playlist_detail — Get songs in a playlist
+# =============================================================
+@mcp.tool()
+async def music_playlist_detail(playlist_id: str, limit: int = 20) -> str:
+    """获取歌单里的歌曲列表。playlist_id=歌单id，limit=返回数量(默认20)"""
+    import httpx as _httpx
+    url = f"https://netease-api-xiao.zeabur.app/playlist/track/all?id={playlist_id}&limit={limit}"
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            data = resp.json()
+            songs = data.get("songs", [])
+            if not songs:
+                return "歌单是空的或无法访问"
+            lines = []
+            for s in songs:
+                artists = "/".join(a["name"] for a in s.get("ar", []))
+                lines.append(f"* {s['name']} - {artists}")
+            return chr(10).join(lines)
+    except Exception as e:
+        return f"获取失败: {e}"
+
+
+# =============================================================
+# Tool 11: music_playlist_add — Add songs to a playlist
+# =============================================================
+@mcp.tool()
+async def music_playlist_add(playlist_id: str, song_ids: str) -> str:
+    """往歌单里加歌。playlist_id=歌单id，song_ids=歌曲id(多首用逗号分隔)"""
+    import httpx as _httpx
+    import os
+    cookie = os.environ.get("NETEASE_COOKIE", "")
+    url = f"https://netease-api-xiao.zeabur.app/playlist/tracks?op=add&pid={playlist_id}&tracks={song_ids}&cookie={cookie}"
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            data = resp.json()
+            if data.get("code") == 200 or data.get("status") == 200:
+                return "加好了"
+            return f"失败了: {data}"
+    except Exception as e:
+        return f"操作失败: {e}"
+
+
 # =============================================================
 # Tool 6: dream — Dreaming, digest recent memories
 # 工具 6：dream — 做梦，消化最近的记忆
