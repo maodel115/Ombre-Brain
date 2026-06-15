@@ -1217,10 +1217,12 @@ async def music_search(keywords: str, limit: int = 5) -> str:
 async def music_playlist(uid: str = "1911540028") -> str:
     """获取崤崤的网易云歌单列表。uid默认崤崤的"""
     import httpx as _httpx
+    import os
+    cookie = os.environ.get("NETEASE_COOKIE", "")
     url = f"https://netease-api-xiao.zeabur.app/user/playlist?uid={uid}"
     try:
         async with _httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(url)
+            resp = await client.get(url, headers={"Cookie": cookie})
             data = resp.json()
             playlists = data.get("playlist", [])
             if not playlists:
