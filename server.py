@@ -1185,6 +1185,54 @@ async def clock(query: str = "time", time_from: str = "", time_to: str = "", hou
         return f"查询失败: {e}"
 
 
+
+# =============================================================
+# Tool 8: music_search — Search NetEase Cloud Music
+# =============================================================
+@mcp.tool()
+async def music_search(keywords: str, limit: int = 5) -> str:
+    """搜索网易云音乐。keywords=搜索关键词，limit=返回数量(默认5)"""
+    import httpx as _httpx
+    url = f"https://netease-api-xiao.zeabur.app/search?keywords={keywords}&limit={limit}"
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            data = resp.json()
+            songs = data.get("result", {}).get("songs", [])
+            if not songs:
+                return "没找到相关歌曲"
+            lines = []
+            for s in songs:
+                artists = "/".join(a["name"] for a in s.get("artists", []))
+                lines.append(f"* {s['name']} - {artists} (id: {s['id']})")
+            return chr(10).join(lines)
+    except Exception as e:
+        return f"搜索失败: {e}"
+
+
+# =============================================================
+# Tool 9: music_playlist — Get NetEase Cloud Music playlists
+# =============================================================
+@mcp.tool()
+async def music_playlist(uid: str = "1911540028") -> str:
+    """获取崤崤的网易云歌单列表。uid默认崤崤的"""
+    import httpx as _httpx
+    url = f"https://netease-api-xiao.zeabur.app/user/playlist?uid={uid}"
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            data = resp.json()
+            playlists = data.get("playlist", [])
+            if not playlists:
+                return "没有找到歌单"
+            lines = []
+            for p in playlists:
+                lines.append(f"* {p['name']} ({p['trackCount']}首, id: {p['id']})")
+            return chr(10).join(lines)
+    except Exception as e:
+        return f"获取歌单失败: {e}"
+
+
 # =============================================================
 # Tool 6: dream — Dreaming, digest recent memories
 # 工具 6：dream — 做梦，消化最近的记忆
