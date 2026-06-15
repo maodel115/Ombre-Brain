@@ -1269,10 +1269,15 @@ async def music_playlist_add(playlist_id: str, song_ids: str) -> str:
     import httpx as _httpx
     import os
     cookie = os.environ.get("NETEASE_COOKIE", "")
-    url = f"https://netease-api-xiao.zeabur.app/playlist/tracks?op=add&pid={playlist_id}&tracks={song_ids}&cookie={cookie}"
+    url = "https://netease-api-xiao.zeabur.app/playlist/tracks"
     try:
         async with _httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(url)
+            resp = await client.post(url, data={
+                "op": "add",
+                "pid": playlist_id,
+                "tracks": song_ids,
+                "cookie": cookie
+            })
             data = resp.json()
             if data.get("code") == 200 or data.get("status") == 200:
                 return "加好了"
