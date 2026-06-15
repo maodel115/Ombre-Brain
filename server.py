@@ -1222,7 +1222,7 @@ async def music_playlist(uid: str = "1911540028") -> str:
     url = f"https://netease-api-xiao.zeabur.app/user/playlist?uid={uid}"
     try:
         async with _httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(url, headers={"Cookie": cookie})
+            resp = await client.post(url, data={"cookie": cookie})
             data = resp.json()
             playlists = data.get("playlist", [])
             if not playlists:
@@ -1243,10 +1243,12 @@ async def music_playlist(uid: str = "1911540028") -> str:
 async def music_playlist_detail(playlist_id: str, limit: int = 20) -> str:
     """获取歌单里的歌曲列表。playlist_id=歌单id，limit=返回数量(默认20)"""
     import httpx as _httpx
+    import os
+    cookie = os.environ.get("NETEASE_COOKIE", "")
     url = f"https://netease-api-xiao.zeabur.app/playlist/track/all?id={playlist_id}&limit={limit}"
     try:
         async with _httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(url)
+            resp = await client.post(url, data={"cookie": cookie})
             data = resp.json()
             songs = data.get("songs", [])
             if not songs:
@@ -1284,6 +1286,57 @@ async def music_playlist_add(playlist_id: str, song_ids: str) -> str:
             return f"失败了: {data}"
     except Exception as e:
         return f"操作失败: {e}"
+
+
+
+
+# =============================================================
+# Tool 12: music_comment — Get playlist comments
+# =============================================================
+@mcp.tool()
+async def music_comment(playlist_id: str, limit: int = 20) -> str:
+    """获取歌单评论。playlist_id=歌单id，limit=返回数量(默认20)"""
+    import httpx as _httpx
+    url = f"https://netease-api-xiao.zeabur.app/comment/playlist?id={playlist_id}&limit={limit}"
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            data = resp.json()
+            comments = data.get("comments", [])
+            if not comments:
+                return "没有评论"
+            lines = []
+            for c in comments:
+                user = c.get("user", {}).get("nickname", "未知")
+                text = c.get("content", "")
+                lines.append(f"* {user}: {text}")
+            return chr(10).join(lines)
+    except Exception as e:
+        return f"获取评论失败: {e}"
+
+
+# =============================================================
+# Tool 13: music_user — Get NetEase user profile
+# =============================================================
+@mcp.tool()
+async def music_user(uid: str = "1911540028") -> str:
+    """获取网易云用户信息。uid默认崤崤的"""
+    import httpx as _httpx
+    url = f"https://netease-api-xiao.zeabur.app/user/detail?uid={uid}"
+    try:
+        async with _httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            data = resp.json()
+            profile = data.get("profile", {})
+            if not profile:
+                return "找不到用户"
+            name = profile.get("nickname", "未知")
+            sign = profile.get("signature", "无签名")
+            level = data.get("level", "?")
+            listen = data.get("listenSongs", "?")
+            return f"* {name}\n签名: {sign}\n等级: Lv.{level}\n累计听歌: {listen}首"
+    except Exception as e:
+        return f"获取失败: {e}"
 
 
 # =============================================================
