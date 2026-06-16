@@ -518,6 +518,18 @@ class ImportEngine:
             return
 
         if not items:
+            if preserve_raw:
+                bucket_id = await self.bucket_mgr.create(
+                    content=content,
+                    metadata={
+                        'importance': 8,
+                        'tags': ['导入', '原文保留'],
+                        'source': 'import_raw',
+                    }
+                )
+                self.state.data['memories_created'] += 1
+                self.state.data['raw_preserved'] += 1
+                logger.info(f'Raw preserved (no extraction): {bucket_id}')
             return
 
         # --- Store each extracted memory ---
