@@ -508,6 +508,22 @@ class ImportEngine:
         if not content.strip():
             return
 
+        # --- preserve_raw: skip LLM, store directly ---
+        if preserve_raw:
+            bucket_id = await self.bucket_mgr.create(
+                content=content,
+                metadata={
+                    'importance': 8,
+                    'tags': ['导入', '原文保留'],
+                    'source': 'import_raw',
+                    'pinned': True,
+                }
+            )
+            self.state.data['memories_created'] += 1
+            self.state.data['raw_preserved'] += 1
+            logger.info(f'Raw preserved directly: {bucket_id}')
+            return
+
         # --- LLM extraction ---
         try:
             items = await self._extract_memories(content)
