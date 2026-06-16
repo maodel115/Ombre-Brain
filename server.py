@@ -531,8 +531,12 @@ async def breath(
             if token_used >= max_tokens:
                 break
             try:
-                clean_meta = {k: v for k, v in b["metadata"].items() if k != "tags"}
-                summary = await dehydrator.dehydrate(strip_wikilinks(b["content"]), clean_meta)
+                text = strip_wikilinks(b.get("content", ""))
+                if b["metadata"].get("pinned") or b["metadata"].get("type") == "permanent":
+                    summary = text
+                else:
+                    clean_meta = {k: v for k, v in b["metadata"].items() if k != "tags"}
+                    summary = await dehydrator.dehydrate(text, clean_meta)
                 t = count_tokens_approx(summary)
                 if token_used + t > max_tokens:
                     break
