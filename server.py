@@ -1535,9 +1535,29 @@ async def api_bucket_update(request):
     if not bucket:
         return JSONResponse({"error": "not found"}, status_code=404)
     body = await request.json()
-    new_content = body.get("content")
-    if new_content is not None:
-        await bucket_mgr.update(bucket_id, content=new_content)
+    update_kwargs = {}
+    if "content" in body:
+        update_kwargs["content"] = body["content"]
+    if "name" in body:
+        update_kwargs["name"] = body["name"]
+    if "domain" in body:
+        update_kwargs["domain"] = body["domain"] if isinstance(body["domain"], list) else [d.strip() for d in body["domain"].split(",") if d.strip()]
+    if "tags" in body:
+        update_kwargs["tags"] = body["tags"] if isinstance(body["tags"], list) else [t.strip() for t in body["tags"].split(",") if t.strip()]
+    if "importance" in body:
+        update_kwargs["importance"] = int(body["importance"])
+    if "pinned" in body:
+        update_kwargs["pinned"] = bool(body["pinned"])
+    if "resolved" in body:
+        update_kwargs["resolved"] = bool(body["resolved"])
+    if "digested" in body:
+        update_kwargs["digested"] = bool(body["digested"])
+    if "valence" in body:
+        update_kwargs["valence"] = float(body["valence"])
+    if "arousal" in body:
+        update_kwargs["arousal"] = float(body["arousal"])
+    if update_kwargs:
+        await bucket_mgr.update(bucket_id, **update_kwargs)
     return JSONResponse({"success": True, "bucket_id": bucket_id})
 
 
