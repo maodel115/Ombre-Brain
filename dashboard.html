@@ -1195,9 +1195,55 @@ async function showDetail(id) {
         '<div class="field"><label>创建</label>' + (meta.created || '—') + '</div>' +
         '<div class="field"><label>最后活跃</label>' + (meta.last_active || '—') + '</div>' +
       '</div>' +
-      '<div class="detail-content">' + esc(b.content) + '</div>';
+      '<div class="detail-content" id="detail-text">' + esc(b.content) + '</div>' +
+      '<div style="margin-top:12px;display:flex;gap:8px;">' +
+        '<button class="btn-primary" id="edit-btn" onclick="startEdit(\'' + id + '\')">✏️ 编辑</button>' +
+        '<button class="btn-primary" id="save-btn" style="display:none;" onclick="saveEdit(\'' + id + '\')">💾 保存</button>' +
+        '<button id="cancel-btn" style="display:none;" onclick="cancelEdit()">取消</button>' +
+      '</div>';
   } catch (e) {
     content.innerHTML = '<div class="loading">加载失败: ' + e.message + '</div>';
+  }
+}
+
+
+var _originalContent = '';
+function startEdit(bid) {
+  var el = document.getElementById('detail-text');
+  _originalContent = el.innerText;
+  var ta = document.createElement('textarea');
+  ta.id = 'edit-area';
+  ta.style.cssText = 'width:100%;min-height:200px;font-size:14px;padding:8px;border:1px solid #ccc;border-radius:4px;font-family:inherit;white-space:pre-wrap;';
+  ta.value = _originalContent;
+  el.innerHTML = '';
+  el.appendChild(ta);
+  document.getElementById('edit-btn').style.display = 'none';
+  document.getElementById('save-btn').style.display = '';
+  document.getElementById('cancel-btn').style.display = '';
+}
+function cancelEdit() {
+  var el = document.getElementById('detail-text');
+  el.innerText = _originalContent;
+  document.getElementById('edit-btn').style.display = '';
+  document.getElementById('save-btn').style.display = 'none';
+  document.getElementById('cancel-btn').style.display = 'none';
+}
+async function saveEdit(bid) {
+  var area = document.getElementById('edit-area');
+  var newContent = area.value;
+  try {
+    var res = await fetch(BASE + '/api/bucket/' + bid, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({content: newContent})
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    document.getElementById('detail-text').innerText = newContent;
+    document.getElementById('edit-btn').style.display = '';
+    document.getElementById('save-btn').style.display = 'none';
+    document.getElementById('cancel-btn').style.display = 'none';
+  } catch(e) {
+    alert('保存失败: ' + e.message);
   }
 }
 
