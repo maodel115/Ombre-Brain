@@ -420,11 +420,17 @@ class ImportEngine:
         filename: str = "",
         preserve_raw: bool = False,
         resume: bool = False,
+        import_type: str = "dynamic",
+        import_importance: int = 5,
+        import_pinned: bool = False,
     ) -> dict:
         """
         Start or resume an import.
         开始或恢复导入。
         """
+        self._import_type = import_type
+        self._import_importance = import_importance
+        self._import_pinned = import_pinned
         if self._running:
             return {"error": "Import already running"}
 
@@ -513,8 +519,9 @@ class ImportEngine:
             bucket_id = await self.bucket_mgr.create(
                 content=content,
                 tags=['导入', '原文保留'],
-                importance=8,
-                pinned=True,
+                importance=self._import_importance,
+                pinned=self._import_pinned,
+                bucket_type=self._import_type,
             )
             self.state.data['memories_created'] += 1
             self.state.data['raw_preserved'] += 1

@@ -1528,6 +1528,31 @@ async def api_bucket_detail(request):
     })
 
 
+@mcp.custom_route("/api/bucket/create", methods=["POST"])
+async def api_bucket_create(request):
+    """Create a new bucket from dashboard."""
+    from starlette.responses import JSONResponse
+    err = _require_auth(request)
+    if err: return err
+    body = await request.json()
+    content = body.get("content", "")
+    if not content.strip():
+        return JSONResponse({"error": "empty content"}, status_code=400)
+    bucket_type = body.get("type", "dynamic")
+    importance = int(body.get("importance", 5))
+    tags_raw = body.get("tags", "")
+    tags = [t.strip() for t in tags_raw.split(",") if t.strip()] if isinstance(tags_raw, str) else tags_raw
+    pinned = bool(body.get("pinned", False))
+    bucket_id = await bucket_mgr.create(
+        content=content,
+        tags=tags,
+        importance=importance,
+        pinned=pinned,
+        bucket_type=bucket_type,
+    )
+    return JSONResponse({"success": True, "bucket_id": bucket_id})
+
+
 @mcp.custom_route("/api/bucket/{bucket_id}", methods=["PATCH"])
 async def api_bucket_update(request):
     """Update bucket content."""
@@ -2005,10 +2030,15 @@ async def api_import_upload(request):
     except Exception as e:
         return JSONResponse({"error": f"Failed to read upload: {e}"}, status_code=400)
 
+    # Parse import options
+    import_type = request.query_params.get("type", "dynamic")
+    import_importance = int(request.query_params.get("importance", "5"))
+    import_pinned = request.query_params.get("pinned", "").lower() in ("1", "true")
+
     # Start import in background
     async def _run_import():
         try:
-            await import_engine.start(raw_content, filename, preserve_raw, resume)
+            await import_engine.start(raw_content, filename, preserve_raw, resume, import_type, import_importance, import_pinned)
         except Exception as e:
             logger.error(f"Import failed: {e}")
 

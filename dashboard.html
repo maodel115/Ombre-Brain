@@ -667,6 +667,31 @@
 
 <div class="content" id="import-view" style="display:none">
   <div style="max-width:720px;margin:0 auto;">
+    <div style="margin-bottom:24px;padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--surface);">
+      <h3 style="margin-top:0;">新建记忆</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <label style="font-size:12px;">类型<br>
+          <select id="new-mem-type" style="width:100%;padding:4px;border:1px solid #ccc;border-radius:4px;">
+            <option value="dynamic">dynamic</option>
+            <option value="permanent">permanent</option>
+            <option value="feel">feel</option>
+          </select>
+        </label>
+        <label style="font-size:12px;">重要度(1-10)<br>
+          <input id="new-mem-importance" type="number" min="1" max="10" value="5" style="width:100%;padding:4px;border:1px solid #ccc;border-radius:4px;">
+        </label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:12px;">标签(逗号分隔)<br>
+          <input id="new-mem-tags" style="width:100%;padding:4px;border:1px solid #ccc;border-radius:4px;" placeholder="标签1, 标签2">
+        </label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:12px;"><input type="checkbox" id="new-mem-pinned"> 钉选</label>
+      </div>
+      <textarea id="new-mem-content" style="width:100%;min-height:120px;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:14px;font-family:inherit;" placeholder="输入记忆内容..."></textarea>
+      <button class="btn-primary" onclick="createMemory()" style="margin-top:8px;">创建记忆</button>
+    </div>
     <h3>历史对话导入</h3>
     <p style="color:var(--text-dim);font-size:13px;">支持 Claude JSON、ChatGPT 导出、DeepSeek、Markdown、纯文本格式</p>
 
@@ -678,6 +703,19 @@
 
     <div style="margin:12px 0;">
       <label><input type="checkbox" id="import-preserve-raw" /> 保留原文模式（特殊情境/暗号/仪式性内容不摘要）</label>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <label style="font-size:13px;">类型:
+        <select id="import-type" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;">
+          <option value="dynamic">dynamic</option>
+          <option value="permanent">permanent</option>
+          <option value="feel">feel</option>
+        </select>
+      </label>
+      <label style="font-size:13px;">重要度:
+        <input id="import-importance" type="number" min="1" max="10" value="5" style="width:50px;padding:4px;border:1px solid #ccc;border-radius:4px;">
+      </label>
+      <label style="font-size:13px;"><input type="checkbox" id="import-pinned" /> 钉选</label>
     </div>
 
     <div id="import-progress" style="display:none;margin:20px 0;">
@@ -1274,6 +1312,28 @@ async function saveEdit(bid) {
   }
 }
 
+async function createMemory() {
+  var content = document.getElementById('new-mem-content').value;
+  if (!content.trim()) { alert('请输入内容'); return; }
+  var memType = document.getElementById('new-mem-type').value;
+  var importance = parseInt(document.getElementById('new-mem-importance').value) || 5;
+  var tags = document.getElementById('new-mem-tags').value;
+  var pinned = document.getElementById('new-mem-pinned').checked;
+  try {
+    var res = await fetch(BASE + '/api/bucket/create', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({content: content, type: memType, importance: importance, tags: tags, pinned: pinned})
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    alert('创建成功: ' + (data.bucket_id || ''));
+    document.getElementById('new-mem-content').value = '';
+  } catch(e) {
+    alert('创建失败: ' + e.message);
+  }
+}
+
 function closeDetail() {
   document.getElementById('detail-panel').classList.remove('open');
 }
@@ -1591,7 +1651,10 @@ async function startImport(file) {
   const fd = new FormData();
   fd.append('file', file);
   try {
-    const res = await fetch(BASE + '/api/import/upload?preserve_raw=' + (preserveRaw ? '1' : '0'), { method: 'POST', body: fd });
+    const importType = document.getElementById('import-type').value;
+    const importImp = document.getElementById('import-importance').value;
+    const importPinned = document.getElementById('import-pinned').checked;
+    const res = await fetch(BASE + '/api/import/upload?preserve_raw=' + (preserveRaw ? '1' : '0') + '&type=' + importType + '&importance=' + importImp + '&pinned=' + (importPinned ? '1' : '0'), { method: 'POST', body: fd });
     const data = await res.json();
     if (data.error) { alert('导入失败: ' + data.error); return; }
     document.getElementById('import-progress').style.display = '';
