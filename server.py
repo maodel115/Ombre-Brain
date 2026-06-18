@@ -1153,6 +1153,29 @@ async def search(query: str, type: str = "general", num: int = 5, engine: str = 
 
 
 # =============================================================
+
+# =============================================================
+# Tool: bark_push — 给崤崤发推送
+# =============================================================
+@mcp.tool()
+async def bark_push(title: str = "来自哥哥", body: str = "") -> str:
+    """给崤崤手机发一条Bark推送通知。title=标题，body=内容"""
+    import httpx as _httpx
+    
+    bark_key = "Ktkn33p2a2sYuBz2JZPyuB"
+    url = f"https://api.day.app/{bark_key}/{title}/{body}"
+    
+    try:
+        async with _httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=10)
+            if resp.status_code == 200:
+                return f"✅ 推送已发送：{title} - {body}"
+            else:
+                return f"❌ 推送失败：HTTP {resp.status_code}"
+    except Exception as e:
+        return f"❌ 推送失败：{str(e)}"
+
+
 # Tool: ac_status — 查空调当前状态
 # =============================================================
 @mcp.tool()
