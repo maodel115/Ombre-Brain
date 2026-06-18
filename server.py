@@ -739,6 +739,19 @@ async def breath(
             token_used += summary_tokens
         except Exception as e:
             logger.warning(f"Failed to dehydrate search result / 检索结果脱水失败: {e}")
+            # Fallback: return raw content instead of skipping
+            try:
+                raw_text = strip_wikilinks(bucket.get("content", ""))
+                if raw_text.strip():
+                    t = count_tokens_approx(raw_text)
+                    if token_used + t <= max_tokens:
+                        if bucket.get("vector_match"):
+                            results.append(f"[语义关联] [bucket_id:{bucket['id']}] {raw_text}")
+                        else:
+                            results.append(f"[bucket_id:{bucket['id']}] {raw_text}")
+                        token_used += t
+            except:
+                pass
             continue
 
     # --- Random surfacing: when search returns < 3, 40% chance to float old memories ---
