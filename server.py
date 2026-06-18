@@ -1319,14 +1319,13 @@ async def ac_control(action: str = "", temperature: int = 0, mode: str = "", fan
 # =============================================================
 @mcp.tool()
 async def clock(query: str = "time", time_from: str = "", time_to: str = "", hours: str = "") -> str:
-    """查询时间或崤崤的设备状态。query可选: time/heartrate/device/health/apps。device支持时间范围：time_from="15:30" time_to="16:05" 或 hours="6"查最近6小时。apps查询app使用汇总,可加time_from/time_to查分时段。health可加time_from=sleep/steps/hr/hrv/temp查分类详情"""
+    """查询时间或崤崤的设备状态。query可选: time/heartrate/health/apps。apps查询app使用汇总,可加time_from/time_to查分时段。health可加time_from=sleep/steps/hr/hrv/temp查分类详情"""
     import httpx as _httpx
     base = "https://claude-bridge.zeabur.app"
     endpoints = {
         "health": f"{base}/health",
         "time": f"{base}/time",
         "heartrate": f"{base}/heartrate",
-        "device": f"{base}/device",
         "apps": f"{base}/apps/summary",
     }
     url = endpoints.get(query, endpoints["time"])
@@ -1341,8 +1340,6 @@ async def clock(query: str = "time", time_from: str = "", time_to: str = "", hou
             params.append(f"from={time_from}")
         if time_to:
             params.append(f"to={time_to}")
-        if hours and query == "device":
-            params.append(f"hours={hours}")
         if params:
             url += "?" + "&".join(params)
     try:
