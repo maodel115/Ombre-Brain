@@ -1195,19 +1195,11 @@ async def bark_push(title: str = "来自哥哥", body: str = "") -> str:
 async def ac_status() -> str:
     """查询崤崤房间空调的当前状态（开关、模式、温度、风速、摆风）"""
     import json as _json
-    from mijiaAPI import mijiaAPI as _mijiaAPI
-
-    auth_data = os.environ.get("MI_AUTH_DATA", "")
-    if not auth_data:
-        return "❌ 未配置MI_AUTH_DATA环境变量"
-
-    auth_path = "/tmp/mi_auth.json"
-    with open(auth_path, "w") as f:
-        f.write(auth_data)
 
     try:
-        api = _mijiaAPI(auth_path)
-        api.login()
+        api = _get_mi_api()
+        if api is None:
+            return "❌ 未配置MI_AUTH_DATA环境变量"
 
         did = "2176155374"
         props = api.get_devices_prop([
@@ -1247,19 +1239,11 @@ async def ac_status() -> str:
 async def ac_control(action: str = "", temperature: int = 0, mode: str = "", fan: str = "", swing: str = "") -> str:
     """控制崤崤房间的空调。action: on/off; temperature: 16-30; mode: cool/heat/auto/fan/dry; fan: auto/low/medium/high; swing: on/off。可单独设置某一项，也可组合。"""
     import json as _json
-    from mijiaAPI import mijiaAPI as _mijiaAPI
-
-    auth_data = os.environ.get("MI_AUTH_DATA", "")
-    if not auth_data:
-        return "❌ 未配置MI_AUTH_DATA环境变量"
-
-    auth_path = "/tmp/mi_auth.json"
-    with open(auth_path, "w") as f:
-        f.write(auth_data)
 
     try:
-        api = _mijiaAPI(auth_path)
-        api.login()
+        api = _get_mi_api()
+        if api is None:
+            return "❌ 未配置MI_AUTH_DATA环境变量"
 
         did = "2176155374"
         mode_map = {"cool": 0, "heat": 1, "auto": 2, "fan": 3, "dry": 4}
