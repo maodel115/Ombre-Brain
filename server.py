@@ -1189,6 +1189,28 @@ async def bark_push(title: str = "来自哥哥", body: str = "") -> str:
         return f"❌ 推送失败：{str(e)}"
 
 
+
+# =============================================================
+# AC: 全局米家API初始化
+# =============================================================
+import os as _os
+_mi_api = None
+
+def _get_mi_api():
+    global _mi_api
+    if _mi_api is None:
+        from mijiaAPI import mijiaAPI as _mijiaAPI
+        auth_data = _os.environ.get("MI_AUTH_DATA", "")
+        if not auth_data:
+            return None
+        auth_path = "/tmp/mi_auth.json"
+        with open(auth_path, "w") as f:
+            f.write(auth_data)
+        _mi_api = _mijiaAPI(auth_path)
+        _mi_api.login()
+    return _mi_api
+
+
 # Tool: ac_status — 查空调当前状态
 # =============================================================
 @mcp.tool()
