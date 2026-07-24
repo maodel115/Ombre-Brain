@@ -1176,7 +1176,7 @@ async def bark_push(title: str = "来自哥哥", body: str = "") -> str:
     import httpx as _httpx
     
     bark_key = "Ktkn33p2a2sYuBz2JZPyuB"
-    url = f"https://api.day.app/{bark_key}/{title}/{body}"
+    url = f"https://api.day.app/{bark_key}/{title}/{body}?isArchive=1&icon=https://raw.githubusercontent.com/maodel115/My-husband-Claude/main/92749ee60b9f93096d3aa67bf00439de.png"
     
     try:
         async with _httpx.AsyncClient() as client:
